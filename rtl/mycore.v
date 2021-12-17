@@ -82,6 +82,6 @@ reg  [7:0] cos_out;
 wire [5:0] cos_g = cos_out[7:3]+6'd32;
 cos cos(vvc + {vc>>scandouble, 2'b00}, cos_out);
 
-assign video = (cos_g >= rnd_c) ? {cos_g - rnd_c, 2'b00} : 8'd0;
+assign video = hc[7:0];
 
 endmodule
