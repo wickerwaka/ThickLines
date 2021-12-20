@@ -113,7 +113,7 @@ USE ieee.numeric_std.ALL;
 
 ENTITY ascal IS
   GENERIC (
-    MASK      : unsigned(7 DOWNTO 0) :=x"FF";
+    MASK      : unsigned(7 DOWNTO 0) := x"FF";
     RAMBASE   : unsigned(31 DOWNTO 0);
     RAMSIZE   : unsigned(31 DOWNTO 0) := x"0080_0000"; -- =8MB
     INTER     : boolean := true;
@@ -718,6 +718,7 @@ ARCHITECTURE rtl OF ascal IS
   TYPE type_bil_t IS RECORD
     r,g,b : unsigned(8+FRAC DOWNTO 0);
   END RECORD;
+
   FUNCTION bil_calc(f : unsigned(FRAC-1 DOWNTO 0);
                     p : arr_pix(0 TO 3)) RETURN type_bil_t IS
     VARIABLE fp,fn : unsigned(FRAC DOWNTO 0);
@@ -735,6 +736,25 @@ ARCHITECTURE rtl OF ascal IS
     x.b:=u;
     RETURN x;
   END FUNCTION;
+
+  FUNCTION near_calc(f : unsigned(FRAC-1 DOWNTO 0);
+                    p : arr_pix(0 TO 3)) RETURN type_bil_t IS
+    VARIABLE x : type_bil_t;
+    VARIABLE s : type_pix;
+    CONSTANT Z : unsigned(FRAC-1 DOWNTO 0):=(OTHERS =>'0');
+  BEGIN
+    IF f(f'left)='1' THEN
+      s:=p(2);
+    ELSE
+      s:=p(1);
+    END IF;
+    x.r:='0' & s.r & Z;
+    x.g:='0' & s.g & Z;
+    x.b:='0' & s.b & Z;
+
+    RETURN x;
+  END FUNCTION;
+
   SIGNAL o_h_bil_t,o_v_bil_t : type_bil_t;
   SIGNAL i_h_bil_t : type_bil_t;
   
@@ -2300,7 +2320,12 @@ BEGIN
       END CASE;
       
       -- C3 : Opposite frac
-      o_h_bil_t<=bil_calc(o_h_frac2,o_hpixq);
+      IF MASK(MASK_BILINEAR)='1' OR MASK(MASK_SHARP_BILINEAR)='1' THEN
+        o_h_bil_t<=bil_calc(o_h_frac2,o_hpixq);
+      ELSE
+        o_h_bil_t<=near_calc(o_h_frac2,o_hpixq);
+      END IF;
+        
       
       -- C4 : Nearest / Bilinear / Sharp Bilinear
       o_h_bil_pix.r<=bound(o_h_bil_t.r,8+FRAC);
@@ -2483,7 +2508,12 @@ BEGIN
           WHEN OTHERS => NULL;
         END CASE;
         
-        o_v_bil_t<=bil_calc(o_v_frac,o_vpixq1);
+        -- C5 :
+        IF MASK(MASK_BILINEAR)='1' OR MASK(MASK_SHARP_BILINEAR)='1' THEN
+          o_v_bil_t<=bil_calc(o_v_frac,o_vpixq1);
+        ELSE
+          o_v_bil_t<=near_calc(o_v_frac,o_vpixq1);
+        END IF;
         
         -- C6 : Nearest / Bilinear / Sharp Bilinear
         o_v_bil_pix.r<=bound(o_v_bil_t.r,8+FRAC);

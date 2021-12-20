@@ -643,7 +643,8 @@ ascal
 	`endif
 `endif
 	.N_DW(128),
-	.N_AW(28)
+	.N_AW(28),
+	.MASK(8'b00010001) // Enable nearest (bit 0) and polyphase (bit 4) filtering
 )
 ascal
 (
