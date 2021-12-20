@@ -14,13 +14,14 @@ module mycore
 	output reg    VBlank,
 	output reg    VSync,
 
-	output  [7:0] video
+	output  [23:0] video
 );
 
 reg   [9:0] hc;
 reg   [9:0] vc;
 reg   [9:0] vvc;
 reg  [63:0] rnd_reg;
+reg  [23:0] color;
 
 wire  [5:0] rnd_c = {rnd_reg[0],rnd_reg[1],rnd_reg[2],rnd_reg[2],rnd_reg[2],rnd_reg[2]};
 wire [63:0] rnd;
@@ -78,10 +79,20 @@ always @(posedge clk) begin
 	if (hc == 590) HSync <= 0;
 end
 
+always @(posedge clk) begin
+	case(vc[3:0])
+	3'b000: color <= {hc[7:0],8'd0,8'd0};
+	3'b010: color <= {8'd0,hc[7:0],8'd0};
+	3'b100: color <= {8'd0,8'd0,hc[7:0]};
+	3'b110: color <= {hc[7:0],hc[7:0],hc[7:0]};
+	default: color <= 24'd0;
+	endcase
+end
+
 reg  [7:0] cos_out;
 wire [5:0] cos_g = cos_out[7:3]+6'd32;
 cos cos(vvc + {vc>>scandouble, 2'b00}, cos_out);
 
-assign video = hc[7:0];
+assign video = color;
 
 endmodule
