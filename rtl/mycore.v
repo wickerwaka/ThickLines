@@ -80,12 +80,12 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-	case(vc[3:0])
+	case(vc[4:2])
 	3'b000: color <= {hc[7:0],8'd0,8'd0};
-	3'b010: color <= {8'd0,hc[7:0],8'd0};
-	3'b100: color <= {8'd0,8'd0,hc[7:0]};
-	3'b110: color <= {hc[7:0],hc[7:0],hc[7:0]};
-	default: color <= 24'd0;
+	3'b001: color <= {8'd0,hc[7:0],8'd0};
+	3'b010: color <= {8'd0,8'd0,hc[7:0]};
+	3'b011: color <= {hc[7:0],hc[7:0],hc[7:0]};
+	default: color <= 24'h808080;
 	endcase
 end
 
